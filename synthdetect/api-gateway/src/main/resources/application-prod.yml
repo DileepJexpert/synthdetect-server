@@ -1,0 +1,13 @@
+spring:
+  jpa:
+    show-sql: false
+
+server:
+  error:
+    include-stacktrace: never
+    include-message: never
+
+logging:
+  level:
+    com.synthdetect: INFO
+    org.springframework: WARN

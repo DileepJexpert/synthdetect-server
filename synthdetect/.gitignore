@@ -1,0 +1,29 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.project
+.settings/
+.classpath
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+
+# SSL certs
+nginx/ssl/
+
+# ML model weights
+ml-engine/models_cache/
+
+# Logs
+*.log
+logs/

@@ -1,0 +1,110 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: synthdetect-api
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:synthdetect}
+    username: ${DB_USER:synthdetect}
+    password: ${DB_PASSWORD:changeme}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 5000
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+
+# ML Engine connection
+ml-engine:
+  base-url: ${ML_ENGINE_URL:http://localhost:8000}
+  timeout-ms: 30000
+  retry-max-attempts: 2
+
+# JWT config
+jwt:
+  secret: ${JWT_SECRET:synthdetect-default-jwt-secret-change-in-production-must-be-256-bits}
+  expiration-ms: 86400000
+  refresh-expiration-ms: 604800000
+
+# API Key config
+auth:
+  api-key:
+    prefix: "sd_"
+    length: 32
+    hash-algorithm: SHA-256
+
+# Rate limiting
+rate-limit:
+  default-rpm: 60
+  plans:
+    FREE: 30
+    STARTER: 120
+    BUSINESS: 600
+    ENTERPRISE: 3000
+
+# Plan quotas (monthly API calls)
+plan-limits:
+  FREE: 500
+  STARTER: 10000
+  BUSINESS: 100000
+  ENTERPRISE: -1
+
+# Content limits
+content:
+  image:
+    max-size-mb: 20
+    supported-formats: [jpeg, jpg, png, webp, gif, bmp]
+  text:
+    min-chars: 50
+    max-chars: 100000
+  batch:
+    max-items: 50
+
+# Compliance
+compliance:
+  default-jurisdiction: india_it_rules_2026
+  takedown-deadline-hours: 3
+  supported-languages: [en, hi, ta, te, bn, mr, kn, gu]
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# Logging
+logging:
+  level:
+    com.synthdetect: INFO
+    org.springframework.security: INFO
