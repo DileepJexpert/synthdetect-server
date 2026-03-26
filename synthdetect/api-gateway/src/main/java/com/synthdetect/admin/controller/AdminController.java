@@ -5,6 +5,7 @@ import com.synthdetect.detection.model.DetectionRequest;
 import com.synthdetect.detection.repository.DetectionRequestRepository;
 import com.synthdetect.user.model.User;
 import com.synthdetect.user.model.UserPlan;
+import com.synthdetect.user.model.UserRole;
 import com.synthdetect.user.model.UserStatus;
 import com.synthdetect.user.repository.UserRepository;
 import com.synthdetect.user.service.UserService;
@@ -101,6 +102,20 @@ public class AdminController {
         user.setStatus(UserStatus.ACTIVE);
         userRepository.save(user);
         return ResponseEntity.ok(ApiResponse.success(Map.of("status", "active")));
+    }
+
+    @PatchMapping("/users/{id}/role")
+    @Operation(summary = "Assign ADMIN or USER role to a user")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> assignRole(
+            @PathVariable UUID id,
+            @RequestBody Map<String, String> body) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new com.synthdetect.common.exception.ApiException(
+                        "User not found", org.springframework.http.HttpStatus.NOT_FOUND));
+        UserRole role = UserRole.valueOf(body.get("role").toUpperCase());
+        user.setRole(role);
+        userRepository.save(user);
+        return ResponseEntity.ok(ApiResponse.success(Map.of("userId", id, "role", role)));
     }
 
     @GetMapping("/detections/flagged")

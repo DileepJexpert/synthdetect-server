@@ -32,6 +32,7 @@ public class UserService {
     private final JwtService jwtService;
     private final EmailTokenRepository emailTokenRepository;
     private final EmailService emailService;
+    private final com.synthdetect.auth.service.TokenBlacklistService tokenBlacklistService;
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -139,16 +140,35 @@ public class UserService {
             throw new ApiException("INVALID_TOKEN", "Invalid or expired refresh token.", HttpStatus.UNAUTHORIZED);
         }
 
+        if (!jwtService.isRefreshToken(refreshToken)) {
+            throw new ApiException("INVALID_TOKEN", "Token is not a refresh token.", HttpStatus.UNAUTHORIZED);
+        }
+
+        String jti = jwtService.extractJti(refreshToken);
+        if (tokenBlacklistService.isBlacklisted(jti)) {
+            throw new ApiException("TOKEN_REVOKED", "Refresh token has already been used.", HttpStatus.UNAUTHORIZED);
+        }
+
         UUID userId = jwtService.extractUserId(refreshToken);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException("USER_NOT_FOUND", "User not found.", HttpStatus.NOT_FOUND));
 
         if (!user.isActive()) {
-            throw new ApiException("ACCOUNT_SUSPENDED",
-                    "Your account has been suspended.", HttpStatus.FORBIDDEN);
+            throw new ApiException("ACCOUNT_SUSPENDED", "Your account has been suspended.", HttpStatus.FORBIDDEN);
         }
 
+        // Rotate: blacklist the used refresh token
+        tokenBlacklistService.blacklist(jti, jwtService.extractExpiration(refreshToken));
+
         return buildAuthResponse(user);
+    }
+
+    public void logout(String accessToken) {
+        if (accessToken != null && jwtService.isTokenValid(accessToken)) {
+            String jti = jwtService.extractJti(accessToken);
+            tokenBlacklistService.blacklist(jti, jwtService.extractExpiration(accessToken));
+            log.info("User logged out — token blacklisted jti={}", jti);
+        }
     }
 
     public UserResponse getProfile(UUID userId) {

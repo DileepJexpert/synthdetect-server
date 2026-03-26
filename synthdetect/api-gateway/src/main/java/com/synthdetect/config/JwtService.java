@@ -44,8 +44,20 @@ public class JwtService {
     }
 
     public UUID extractUserId(String token) {
+        return UUID.fromString(parseToken(token).getSubject());
+    }
+
+    public String extractJti(String token) {
+        return parseToken(token).getId();
+    }
+
+    public java.time.Instant extractExpiration(String token) {
+        return parseToken(token).getExpiration().toInstant();
+    }
+
+    public boolean isRefreshToken(String token) {
         Claims claims = parseToken(token);
-        return UUID.fromString(claims.getSubject());
+        return "refresh".equals(claims.get("type", String.class));
     }
 
     public boolean isTokenValid(String token) {
@@ -61,9 +73,14 @@ public class JwtService {
         return expirationMs;
     }
 
+    public long getRefreshExpirationMs() {
+        return refreshExpirationMs;
+    }
+
     private String buildToken(UUID userId, String email, long expiration, Map<String, Object> extraClaims) {
         long now = System.currentTimeMillis();
         return Jwts.builder()
+                .id(UUID.randomUUID().toString())   // jti claim for blacklisting
                 .subject(userId.toString())
                 .claim("email", email)
                 .claims(extraClaims)

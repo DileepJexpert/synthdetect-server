@@ -3,6 +3,7 @@ package com.synthdetect.detection.controller;
 import com.synthdetect.common.model.ApiResponse;
 import com.synthdetect.detection.dto.*;
 import com.synthdetect.detection.service.DetectionService;
+import com.synthdetect.detection.service.ImageUploadService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -11,9 +12,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -24,6 +27,26 @@ import java.util.UUID;
 public class DetectionController {
 
     private final DetectionService detectionService;
+    private final ImageUploadService imageUploadService;
+
+    @PostMapping(value = "/image/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Detect synthetic content in an uploaded image file (max 20 MB)")
+    public ResponseEntity<ApiResponse<DetectionResponse>> detectImageUpload(
+            @AuthenticationPrincipal UUID userId,
+            @RequestAttribute(value = "apiKeyId", required = false) UUID apiKeyId,
+            @RequestPart("file") MultipartFile file,
+            @RequestParam(required = false) String webhookUrl,
+            @RequestParam(required = false) String jurisdiction,
+            @RequestParam(required = false) Boolean flagIfSynthetic) {
+        String imageUrl = imageUploadService.storeAndGetUrl(file);
+        ImageDetectionRequest request = new ImageDetectionRequest();
+        request.setImageUrl(imageUrl);
+        request.setWebhookUrl(webhookUrl);
+        request.setJurisdiction(jurisdiction);
+        request.setFlagIfSynthetic(flagIfSynthetic);
+        DetectionResponse response = detectionService.detectImage(userId, apiKeyId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
+    }
 
     @PostMapping("/image")
     @Operation(summary = "Detect synthetic content in an image")

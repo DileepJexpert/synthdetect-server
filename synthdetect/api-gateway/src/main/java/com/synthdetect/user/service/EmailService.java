@@ -65,6 +65,11 @@ public class EmailService {
         sendEmail(toEmail, subject, body);
     }
 
+    @Async
+    public void sendComplianceAlert(String toEmail, String subject, String body) {
+        sendEmail(toEmail, subject, body);
+    }
+
     private void sendEmail(String to, String subject, String body) {
         try {
             MimeMessage message = mailSender.createMimeMessage();

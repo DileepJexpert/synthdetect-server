@@ -52,6 +52,15 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @PostMapping("/auth/logout")
+    public ResponseEntity<ApiResponse<Map<String, String>>> logout(
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            userService.logout(authHeader.substring(7));
+        }
+        return ResponseEntity.ok(ApiResponse.success(Map.of("message", "Logged out successfully.")));
+    }
+
     @GetMapping("/auth/verify-email")
     public ResponseEntity<ApiResponse<Map<String, String>>> verifyEmail(@RequestParam String token) {
         userService.verifyEmail(token);
