@@ -5,8 +5,10 @@ import com.synthdetect.usage.model.UsageStat;
 import com.synthdetect.usage.repository.UsageStatRepository;
 import com.synthdetect.user.model.User;
 import com.synthdetect.user.service.UserService;
+import com.synthdetect.webhook.service.WebhookService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +25,8 @@ public class UsageService {
 
     private final UsageStatRepository usageStatRepository;
     private final UserService userService;
+    @Lazy
+    private final WebhookService webhookService;
 
     private static final DateTimeFormatter YEAR_MONTH_FMT = DateTimeFormatter.ofPattern("yyyy-MM");
 
@@ -39,12 +43,16 @@ public class UsageService {
                         .build());
 
         int quota = stat.getQuotaLimit();
+        int used = stat.getTotalCalls();
+
         // -1 = unlimited (ENTERPRISE)
-        if (quota != -1 && stat.getTotalCalls() >= quota) {
+        if (quota != -1 && used >= quota) {
+            webhookService.deliverQuotaEvent(userId, "quota.exceeded",
+                    Map.of("used", used, "limit", quota, "yearMonth", yearMonth));
             throw new QuotaExceededException("Monthly quota of " + quota + " calls exceeded");
         }
 
-        stat.setTotalCalls(stat.getTotalCalls() + 1);
+        stat.setTotalCalls(used + 1);
         if ("image".equalsIgnoreCase(type)) {
             stat.setImageCalls(stat.getImageCalls() + 1);
         } else if ("text".equalsIgnoreCase(type)) {
@@ -54,6 +62,18 @@ public class UsageService {
         }
 
         usageStatRepository.save(stat);
+
+        // Fire quota.warning at 80% usage
+        if (quota != -1) {
+            int newUsed = used + 1;
+            double pct = newUsed * 100.0 / quota;
+            if (pct >= 80 && (used * 100.0 / quota) < 80) {
+                webhookService.deliverQuotaEvent(userId, "quota.warning",
+                        Map.of("used", newUsed, "limit", quota, "percentUsed", Math.round(pct),
+                                "yearMonth", yearMonth));
+                log.info("Quota warning fired userId={} used={}/{}", userId, newUsed, quota);
+            }
+        }
     }
 
     @Transactional(readOnly = true)

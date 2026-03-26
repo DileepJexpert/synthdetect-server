@@ -3,6 +3,7 @@ package com.synthdetect.detection.service;
 import com.synthdetect.auth.model.ApiKey;
 import com.synthdetect.auth.repository.ApiKeyRepository;
 import com.synthdetect.common.exception.ApiException;
+import com.synthdetect.common.util.HashUtil;
 import com.synthdetect.detection.client.MlEngineClient;
 import com.synthdetect.detection.client.MlEngineClient.MlDetectionResult;
 import com.synthdetect.detection.dto.*;
@@ -54,6 +55,7 @@ public class DetectionService {
                 .type(DetectionType.IMAGE)
                 .status(DetectionStatus.PROCESSING)
                 .contentUrl(req.getImageUrl())
+                .contentHash(req.getImageUrl() != null ? HashUtil.sha256(req.getImageUrl()) : null)
                 .webhookUrl(req.getWebhookUrl())
                 .jurisdiction(req.getJurisdiction() != null ? req.getJurisdiction() : "india_it_rules_2026")
                 .build();
@@ -74,6 +76,7 @@ public class DetectionService {
                 .type(DetectionType.TEXT)
                 .status(DetectionStatus.PROCESSING)
                 .contentText(req.getText())
+                .contentHash(req.getText() != null ? HashUtil.sha256(req.getText()) : null)
                 .language(req.getLanguage())
                 .webhookUrl(req.getWebhookUrl())
                 .jurisdiction(req.getJurisdiction() != null ? req.getJurisdiction() : "india_it_rules_2026")

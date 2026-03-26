@@ -58,9 +58,13 @@ spring:
       write-dates-as-timestamps: false
     default-property-inclusion: non_null
 
-# App base URL (used in email links)
+# App settings
 app:
   base-url: ${APP_BASE_URL:http://localhost:8080}
+  upload:
+    dir: ${UPLOAD_DIR:/tmp/synthdetect-uploads}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
 
 # ML Engine connection
 ml-engine:
