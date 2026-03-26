@@ -1,0 +1,16 @@
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+pydantic==2.10.1
+pydantic-settings==2.6.1
+httpx==0.27.2
+Pillow==11.0.0
+numpy==2.1.3
+torch==2.5.1
+torchvision==0.20.1
+transformers==4.46.3
+opencv-python-headless==4.10.0.84
+langdetect==1.0.9
+prometheus-fastapi-instrumentator==7.0.0
+python-multipart==0.0.17
+structlog==24.4.0
+tenacity==9.0.0
