@@ -32,7 +32,12 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                    "/auth/**",
+                    "/auth/register",
+                    "/auth/login",
+                    "/auth/refresh",
+                    "/auth/verify-email",
+                    "/auth/forgot-password",
+                    "/auth/reset-password",
                     "/actuator/health",
                     "/actuator/info",
                     "/swagger-ui.html",

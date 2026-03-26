@@ -51,4 +51,32 @@ public class UserController {
         UserResponse response = userService.updateProfile(userId, body.get("company_name"));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+    @GetMapping("/auth/verify-email")
+    public ResponseEntity<ApiResponse<Map<String, String>>> verifyEmail(@RequestParam String token) {
+        userService.verifyEmail(token);
+        return ResponseEntity.ok(ApiResponse.success(Map.of("message", "Email verified successfully.")));
+    }
+
+    @PostMapping("/auth/resend-verification")
+    public ResponseEntity<ApiResponse<Map<String, String>>> resendVerification(
+            @AuthenticationPrincipal UUID userId) {
+        userService.resendVerification(userId);
+        return ResponseEntity.ok(ApiResponse.success(Map.of("message", "Verification email sent.")));
+    }
+
+    @PostMapping("/auth/forgot-password")
+    public ResponseEntity<ApiResponse<Map<String, String>>> forgotPassword(
+            @RequestBody Map<String, String> body) {
+        userService.forgotPassword(body.get("email"));
+        return ResponseEntity.ok(ApiResponse.success(
+                Map.of("message", "If that email exists, a reset link has been sent.")));
+    }
+
+    @PostMapping("/auth/reset-password")
+    public ResponseEntity<ApiResponse<Map<String, String>>> resetPassword(
+            @RequestBody Map<String, String> body) {
+        userService.resetPassword(body.get("token"), body.get("password"));
+        return ResponseEntity.ok(ApiResponse.success(Map.of("message", "Password reset successfully.")));
+    }
 }
