@@ -1,6 +1,7 @@
 package com.synthdetect.user.repository;
 
 import com.synthdetect.user.model.User;
+import com.synthdetect.user.model.UserStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,4 +14,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmailAndDeletedAtIsNull(String email);
 
     boolean existsByEmailAndDeletedAtIsNull(String email);
+
+    long countByStatus(UserStatus status);
 }

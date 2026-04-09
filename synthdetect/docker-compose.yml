@@ -28,6 +28,23 @@ services:
       timeout: 3s
       retries: 5
 
+  ml-engine:
+    build: ./ml-engine
+    ports:
+      - "8000:8000"
+    environment:
+      DEBUG: "false"
+      DEVICE: "cpu"
+      MODEL_CACHE_DIR: /app/model_cache
+    volumes:
+      - ml_model_cache:/app/model_cache
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/health').raise_for_status()"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
   api-gateway:
     build: ./api-gateway
     ports:
@@ -48,6 +65,9 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      ml-engine:
+        condition: service_healthy
 
 volumes:
   postgres_data:
+  ml_model_cache:

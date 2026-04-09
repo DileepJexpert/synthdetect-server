@@ -29,6 +29,7 @@ public class ApiKeyService {
 
     private final ApiKeyRepository apiKeyRepository;
     private final UserService userService;
+    private final ApiKeyCacheService cacheService;
 
     @Transactional
     public Map<String, Object> createApiKey(UUID userId, String name, String[] scopes, String environment) {
@@ -96,6 +97,9 @@ public class ApiKeyService {
         apiKey.setStatus(ApiKeyStatus.REVOKED);
         apiKey.setRevokedAt(Instant.now());
         apiKeyRepository.save(apiKey);
+
+        // Evict from cache immediately so revocation takes effect within milliseconds
+        cacheService.evict(apiKey.getKeyHash());
 
         log.info("API key revoked: id={}, userId={}", keyId, userId);
     }

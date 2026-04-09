@@ -1,5 +1,10 @@
 server:
   port: 8080
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 20MB
+      max-request-size: 21MB
 
 spring:
   application:
@@ -36,10 +41,30 @@ spring:
       port: ${REDIS_PORT:6379}
       timeout: 5000
 
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:noreply@synthdetect.ai}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
   jackson:
     serialization:
       write-dates-as-timestamps: false
     default-property-inclusion: non_null
+
+# App settings
+app:
+  base-url: ${APP_BASE_URL:http://localhost:8080}
+  upload:
+    dir: ${UPLOAD_DIR:/tmp/synthdetect-uploads}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
 
 # ML Engine connection
 ml-engine:
